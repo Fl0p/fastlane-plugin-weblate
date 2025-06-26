@@ -1,0 +1,28 @@
+lane :test do
+  # Basic usage example
+  weblate(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    show_details: ENV["WEBLATE_SHOW_DETAILS"]
+  )
+end
+
+lane :test_project_languages do
+  # Example of fetching languages for a specific project
+  languages = weblate_projects_languages(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: ENV["WEBLATE_PROJECT_SLUG"],
+    show_details: ENV["WEBLATE_SHOW_DETAILS"]
+  )
+  
+  # Process the languages data
+  puts "Найдено языков: #{languages.count}"
+  
+  # Example: Check if specific language exists
+  if languages.any? { |lang| lang.code == "ru" }
+    puts "✅ Русский язык доступен в проекте"
+  else
+    puts "❌ Русский язык не найден в проекте"
+  end
+end
