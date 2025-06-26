@@ -1,45 +1,67 @@
 require 'fastlane/action'
 require_relative '../helper/weblate_helper'
-require 'weblate'
+require 'net/http'
+require 'uri'
+require 'json'
+require 'ostruct'
 
 module Fastlane
   module Actions
     class WeblateProjectsLanguagesAction < Action
       def self.run(params)
+        begin
           # Parse URL components
           uri = URI(params[:host])
+          base_url = "#{uri.scheme}://#{uri.host}"
+          base_url += ":#{uri.port}" if uri.port != uri.default_port
+          base_url += uri.path.empty? ? '/api' : uri.path
           
-          # Configure API client
-          ::Weblate.configure do |config|
-            config.scheme = uri.scheme
-            config.host = uri.host
-            config.base_path = uri.path.empty? ? '/api' : uri.path
-            config.api_key['Authorization'] = params[:api_token]
-            config.api_key_prefix['Authorization'] = 'Token'
-          end
-
-          begin
-            # Create API client instance
-            api_instance = ::Weblate::ProjectsApi.new
-            
-            UI.message("🌐 Connecting to Weblate: #{params[:host]}")
-            UI.message("🔍 Fetching languages for project: #{params[:project_slug]}")
-            
-            # Execute request
-            result = api_instance.projects_languages_retrieve(params[:project_slug])
-            
+          # Build API endpoint URL
+          api_url = "#{base_url}/projects/#{params[:project_slug]}/languages/"
+          
+          UI.message("🌐 Connecting to Weblate: #{params[:host]}")
+          UI.message("🔍 Fetching languages for project: #{params[:project_slug]}")
+          UI.message("📡 API URL: #{api_url}")
+          
+          # Make HTTP request
+          uri = URI(api_url)
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl = uri.scheme == 'https'
+          
+          request = Net::HTTP::Get.new(uri)
+          request['Authorization'] = "Token #{params[:api_token]}"
+          request['Accept'] = 'application/json'
+          request['User-Agent'] = 'fastlane-plugin-weblate'
+          
+          response = http.request(request)
+          
+          case response.code.to_i
+          when 200
             UI.success("✅ Successfully fetched project languages!")
-            puts "result: #{result.to_json}"
+            
+            # Parse JSON response
+            result = JSON.parse(response.body)
+            
             # Handle different possible response structures
-            languages = if result.respond_to?(:results)
-                         result.results || []
-                       elsif result.is_a?(Array)
-                         result
-                       elsif result.respond_to?(:languages)
-                         result.languages || []
-                       else
-                         []
-                       end
+            languages_data = if result.is_a?(Hash) && result['results']
+                              result['results'] || []
+                            elsif result.is_a?(Array)
+                              result
+                            else
+                              []
+                            end
+            
+            # Convert hash data to objects with attribute access
+            languages = languages_data.map do |lang_data|
+              OpenStruct.new(
+                name: lang_data['name'] || lang_data['english_name'] || 'Unknown',
+                code: lang_data['code'] || 'Unknown',
+                direction: lang_data['direction'],
+                plural: lang_data['plural'],
+                web_url: lang_data['web_url'],
+                url: lang_data['url']
+              )
+            end
             
             UI.message("🌍 Found languages: #{languages.count}")
             
@@ -47,10 +69,11 @@ module Fastlane
               UI.message("\n🌍 Language details:")
               languages.each_with_index do |language, index|
                 UI.message("#{index + 1}. #{language.name} (#{language.code})")
-                if language.respond_to?(:direction)
+                
+                if language.direction
                   UI.message("   Direction: #{language.direction}")
                 end
-                if language.respond_to?(:plural)
+                if language.plural
                   UI.message("   Plural count: #{language.plural}")
                 end
                 UI.message("")
@@ -62,15 +85,31 @@ module Fastlane
             # Return processed languages for further use
             languages
             
-          rescue ::Weblate::ApiError => e
-            UI.error("❌ Weblate API error: #{e.message}")
-            UI.error("Error code: #{e.code}")
-            UI.error("Response headers: #{e.response_headers}")
-            raise e
-          rescue StandardError => e
-            UI.error("❌ Unexpected error: #{e.message}")
-            raise e
+          when 401
+            UI.error("❌ Authentication failed. Please check your API token.")
+            raise "Authentication failed (401)"
+          when 403
+            UI.error("❌ Access forbidden. Check your permissions for this project.")
+            raise "Access forbidden (403)"
+          when 404
+            UI.error("❌ Project not found. Please check the project slug.")
+            raise "Project not found (404)"
+          when 429
+            UI.error("❌ Too many requests. Please wait and try again.")
+            raise "Rate limit exceeded (429)"
+          else
+            UI.error("❌ API request failed with status: #{response.code}")
+            UI.error("Response: #{response.body}")
+            raise "API request failed (#{response.code})"
           end
+          
+        rescue JSON::ParserError => e
+          UI.error("❌ Failed to parse JSON response: #{e.message}")
+          raise e
+        rescue StandardError => e
+          UI.error("❌ Unexpected error: #{e.message}")
+          raise e
+        end
       end
 
       def self.description
@@ -82,7 +121,7 @@ module Fastlane
       end
 
       def self.return_value
-        "Returns array of Language objects with project languages data (empty array if no languages found)"
+        "Returns array of OpenStruct objects with language data (name, code, direction, plural, web_url, url). Empty array if no languages found."
       end
 
       def self.details
