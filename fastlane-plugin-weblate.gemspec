@@ -18,8 +18,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.6'
 
   # Don't add a dependency to fastlane or fastlane_re
-
-  spec.add_dependency 'weblate', '~> 0.1.1'
+  # We use direct HTTP requests instead of the weblate gem
 
   spec.add_development_dependency('bundler')
   spec.add_development_dependency('rspec')
