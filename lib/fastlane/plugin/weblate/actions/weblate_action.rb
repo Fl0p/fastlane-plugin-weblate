@@ -52,16 +52,35 @@ module Fastlane
         
         UI.message("📊 Found projects: #{projects.count}")
         
-        if params[:show_details] && !projects.empty?
+        if !projects.empty?
           UI.message("\n📋 Project details:")
           projects.each_with_index do |project, index|
             UI.message("#{index + 1}. #{project.name} (#{project.slug})")
             UI.message("   URL: #{project.web_url}") if project.web_url
-            UI.message("   Languages: #{project.languages_count}") if project.languages_count
-            UI.message("   Components: #{project.components_count}") if project.components_count
+            if params[:show_details]
+              # Fetch detailed statistics for the project
+              stats_url = "#{base_url}/projects/#{project.slug}/statistics/"
+                              begin
+                  stats_result = Helper::WeblateHelper.make_api_request(stats_url, params[:api_token])
+                  UI.message("   📊 Statistics:")
+                  UI.message("     • Total strings: #{stats_result['total'] || 'N/A'}")
+                  UI.message("     • Total words: #{stats_result['total_words'] || 'N/A'}")
+                  UI.message("     • Translated: #{stats_result['translated'] || 'N/A'} (#{stats_result['translated_percent'] || 'N/A'}%)")
+                  UI.message("     • Approved: #{stats_result['approved'] || 'N/A'} (#{stats_result['approved_percent'] || 'N/A'}%)")
+                  UI.message("     • Fuzzy: #{stats_result['fuzzy'] || 'N/A'} (#{stats_result['fuzzy_percent'] || 'N/A'}%)")
+                  UI.message("     • Failing checks: #{stats_result['failing'] || 'N/A'} (#{stats_result['failing_percent'] || 'N/A'}%)")
+                  UI.message("     • Readonly: #{stats_result['readonly'] || 'N/A'} (#{stats_result['readonly_percent'] || 'N/A'}%)")
+                  UI.message("     • Suggestions: #{stats_result['suggestions'] || 'N/A'}")
+                  UI.message("     • Comments: #{stats_result['comments'] || 'N/A'}")
+                  UI.message("     • Recent changes: #{stats_result['recent_changes'] || 'N/A'}")
+                  UI.message("     • Last change: #{stats_result['last_change'] || 'N/A'}")
+              rescue => e
+                UI.error("   ❌ Failed to fetch statistics for #{project.name}: #{e.message}")
+              end
+            end
             UI.message("")
           end
-        elsif params[:show_details] && projects.empty?
+        else
           UI.message("📝 No projects found")
         end
         
