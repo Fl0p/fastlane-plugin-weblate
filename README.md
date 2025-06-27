@@ -14,11 +14,10 @@ fastlane add_plugin weblate
 
 Weblate API integration for automating translation workflows in mobile applications.
 
-The plugin allows you to:
-- 📋 Fetch project components list
-- 📊 View translation statistics
-- 🔍 Filter components by projects
-- 📄 Support pagination of results
+The plugin provides three main actions:
+- 📋 **weblate** - Fetch projects list with detailed statistics
+- 🌍 **weblate_projects_languages** - Get languages for a specific project
+- 📄 **weblate_files_download** - Download translation files from components
 
 ## Setup
 
@@ -34,50 +33,168 @@ export WEBLATE_HOST="https://hosted.weblate.org"
 export WEBLATE_API_TOKEN="your_api_token_here"
 ```
 
-## Usage
+## Actions
 
-### Basic example
+### 1. weblate - Fetch Projects List
 
-```ruby
-weblate(
-  host: "https://hosted.weblate.org",
-  api_token: "your_api_token_here"
-)
-```
+Fetches projects list from Weblate with optional detailed statistics.
 
-### Get components with details
-
-```ruby
-components = weblate(
-  host: ENV["WEBLATE_HOST"],
-  api_token: ENV["WEBLATE_API_TOKEN"],
-  show_details: true,
-  page_size: 50
-)
-
-UI.message("Found components: #{components.count}")
-```
-
-### Filter by project
-
-```ruby
-weblate(
-  host: ENV["WEBLATE_HOST"],
-  api_token: ENV["WEBLATE_API_TOKEN"],
-  project: "my-mobile-app"
-)
-```
-
-## Parameters
+#### Parameters
 
 | Parameter | Required | Description | Environment Variable |
 |-----------|----------|-------------|---------------------|
 | `host` | ✅ | Weblate host URL | `WEBLATE_HOST` |
 | `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
-| `project` | ❌ | Project slug for filtering | `WEBLATE_PROJECT` |
 | `page` | ❌ | Page number (default: 1) | `WEBLATE_PAGE` |
-| `page_size` | ❌ | Items per page (default: 20) | `WEBLATE_PAGE_SIZE` |
-| `show_details` | ❌ | Show component details | `WEBLATE_SHOW_DETAILS` |
+| `page_size` | ❌ | Items per page (default: 20, max: 200) | `WEBLATE_PAGE_SIZE` |
+| `show_details` | ❌ | Show detailed statistics | `WEBLATE_SHOW_DETAILS` |
+
+#### Examples
+
+```ruby
+# Basic usage
+weblate(
+  host: "https://hosted.weblate.org",
+  api_token: "your_api_token_here"
+)
+
+# With detailed statistics
+weblate(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  show_details: true
+)
+
+# With pagination
+projects = weblate(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  page_size: 50
+)
+UI.message("Found projects: #{projects.count}")
+```
+
+### 2. weblate_projects_languages - Get Project Languages
+
+Fetches the list of languages available for a specific project.
+
+#### Parameters
+
+| Parameter | Required | Description | Environment Variable |
+|-----------|----------|-------------|---------------------|
+| `host` | ✅ | Weblate host URL | `WEBLATE_HOST` |
+| `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
+| `project_slug` | ✅ | Project slug to fetch languages for | `WEBLATE_PROJECT_SLUG` |
+| `show_details` | ❌ | Show detailed information | `WEBLATE_SHOW_DETAILS` |
+
+#### Examples
+
+```ruby
+# Basic usage
+weblate_projects_languages(
+  host: "https://hosted.weblate.org",
+  api_token: "your_api_token_here",
+  project_slug: "my-mobile-app"
+)
+
+# With detailed information
+weblate_projects_languages(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-mobile-app",
+  show_details: true
+)
+
+# Store results for processing
+languages = weblate_projects_languages(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-mobile-app"
+)
+UI.message("Total languages: #{languages.count}")
+```
+
+### 3. weblate_files_download - Download Translation Files
+
+Downloads translation files from Weblate components. Supports various formats and categorized components.
+
+#### Parameters
+
+| Parameter | Required | Description | Environment Variable |
+|-----------|----------|-------------|---------------------|
+| `host` | ✅ | Weblate host URL | `WEBLATE_HOST` |
+| `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
+| `project_slug` | ✅ | Project slug | `WEBLATE_PROJECT_SLUG` |
+| `component_slug` | ✅ | Component slug (supports categories like `ios/localizable-strings`) | `WEBLATE_COMPONENT_SLUG` |
+| `format` | ❌ | File format (po, json, xliff, etc.) | `WEBLATE_FILE_FORMAT` |
+| `output_path` | ❌ | Path to save the file | `WEBLATE_OUTPUT_PATH` |
+
+#### Examples
+
+```ruby
+# Basic download (returns content)
+file_content = weblate_files_download(
+  host: "https://hosted.weblate.org",
+  api_token: "your_api_token_here",
+  project_slug: "my-project",
+  component_slug: "android-strings"
+)
+
+# Download with specific format and save to file
+weblate_files_download(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-project",
+  component_slug: "ios-localizable",
+  format: "json",
+  output_path: "./translations/strings.json"
+)
+
+# Download from categorized component
+weblate_files_download(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-project",
+  component_slug: "ios/localizable-strings",
+  output_path: "./translations/ios_strings.po"
+)
+```
+
+## Complete Workflow Example
+
+Here's a complete example showing how to use all three actions together:
+
+```ruby
+# 1. Get all projects
+projects = weblate(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  show_details: true
+)
+
+# 2. For each project, get languages
+projects.results.each do |project|
+  UI.message("Processing project: #{project.name}")
+  
+  languages = weblate_projects_languages(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: project.slug
+  )
+  
+  UI.message("Available languages: #{languages.map(&:code).join(', ')}")
+  
+  # 3. Download files for specific components
+  weblate_files_download(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: project.slug,
+    component_slug: "mobile-strings",
+    format: "json",
+    output_path: "./translations/#{project.slug}_strings.json"
+  )
+end
+```
 
 ## Example
 
