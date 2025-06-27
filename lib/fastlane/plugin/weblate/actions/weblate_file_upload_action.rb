@@ -66,19 +66,23 @@ module Fastlane
           end
           
           # Add author email field
-          if params[:email]
+          email_value = params[:email].is_a?(Proc) ? params[:email].call : params[:email]
+          if email_value && !email_value.empty?
             post_body << "--#{boundary}\r\n"
             post_body << "Content-Disposition: form-data; name=\"email\"\r\n\r\n"
-            post_body << params[:email]
+            post_body << email_value
             post_body << "\r\n"
+            UI.message("📧 Author email: #{email_value}")
           end
           
           # Add author name field
-          if params[:author]
+          author_value = params[:author].is_a?(Proc) ? params[:author].call : params[:author]
+          if author_value && !author_value.empty?
             post_body << "--#{boundary}\r\n"
             post_body << "Content-Disposition: form-data; name=\"author\"\r\n\r\n"
-            post_body << params[:author]
+            post_body << author_value
             post_body << "\r\n"
+            UI.message("👤 Author name: #{author_value}")
           end
           
           # Add fuzzy field
