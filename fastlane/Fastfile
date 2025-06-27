@@ -3,17 +3,18 @@ lane :test do
   weblate(
     host: ENV["WEBLATE_HOST"],
     api_token: ENV["WEBLATE_API_TOKEN"],
-    show_details: ENV["WEBLATE_SHOW_DETAILS"]
+    show_details: true
   )
 end
 
+desc "Demo: Get project languages"
 lane :test_project_languages do
   # Example of fetching languages for a specific project
   languages = weblate_projects_languages(
     host: ENV["WEBLATE_HOST"],
     api_token: ENV["WEBLATE_API_TOKEN"],
     project_slug: ENV["WEBLATE_PROJECT_SLUG"],
-    show_details: ENV["WEBLATE_SHOW_DETAILS"]
+    show_details: true
   )
   
   # Process the languages data
@@ -25,4 +26,15 @@ lane :test_project_languages do
   else
     puts "❌ Русский язык не найден в проекте"
   end
+end
+
+desc "Demo: Download files from Weblate"
+lane :test_files_download do
+  weblate_files_download(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: ENV["WEBLATE_PROJECT_SLUG"],
+    component_slug: "ios/localizable-strings",
+    output_path: "./translations/downloaded.zip"
+  )
 end

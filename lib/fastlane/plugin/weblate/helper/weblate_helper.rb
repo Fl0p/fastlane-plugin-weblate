@@ -20,7 +20,7 @@ module Fastlane
         uri = URI(host)
         base_url = "#{uri.scheme}://#{uri.host}"
         base_url += ":#{uri.port}" if uri.port != uri.default_port
-        base_url += uri.path.empty? ? '/api' : uri.path
+        base_url += uri.path.empty? ? '/api' : uri.path.chomp('/')
         base_url
       end
 

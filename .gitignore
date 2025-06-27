@@ -1,6 +1,8 @@
 # env file
 .env
 
+translations/
+
 # General macOS
 .DS_Store
 .AppleDouble
