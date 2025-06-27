@@ -38,3 +38,14 @@ lane :test_files_download do
     output_path: "./translations/downloaded.zip"
   )
 end
+
+desc "Demo: Upload base file to Weblate"
+lane :test_base_upload do
+  weblate_base_upload(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: ENV["WEBLATE_PROJECT_SLUG"],
+    component_slug: "ios/localizable-strings",
+    src_file_path: "./translations/mobile/common/ios/base/Base.lproj/Localizable.strings"
+  )
+end
