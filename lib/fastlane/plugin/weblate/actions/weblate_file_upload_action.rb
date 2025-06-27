@@ -6,7 +6,7 @@ require 'json'
 
 module Fastlane
   module Actions
-    class WeblateBaseUploadAction < Action
+    class WeblateFileUploadAction < Action
       def self.run(params)
         # Build API endpoint URL for translations
         base_url = Helper::WeblateHelper.build_api_base_url(params[:host])
@@ -280,7 +280,7 @@ module Fastlane
 
       def self.example_code
         [
-          'weblate_base_upload(
+          'weblate_file_upload(
             host: "https://hosted.weblate.org",
             api_token: "your_api_token_here",
             project_slug: "my-project",
@@ -288,7 +288,7 @@ module Fastlane
             language: "en_devel",
             src_file_path: "./android/values/strings.xml"
           )',
-          'weblate_base_upload(
+          'weblate_file_upload(
             host: "https://hosted.weblate.org", 
             api_token: "your_api_token_here",
             project_slug: "my-project",
@@ -301,7 +301,7 @@ module Fastlane
             fuzzy: "process",
             src_file_path: "./ios/Localizable.strings"
           )',
-          'weblate_base_upload(
+          'weblate_file_upload(
             host: "https://hosted.weblate.org",
             api_token: "your_api_token_here",
             project_slug: "my-project",
