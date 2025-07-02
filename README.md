@@ -1,93 +1,299 @@
-# lib-fastlane-plugin-weblate
+# weblate plugin
 
+[![fastlane Plugin Badge](https://rawcdn.githack.com/fastlane/fastlane/master/fastlane/assets/plugin-badge.svg)](https://rubygems.org/gems/fastlane-plugin-weblate)
 
+## Getting Started
 
-## Getting started
+This project is a [_fastlane_](https://github.com/fastlane/fastlane) plugin. To get started with `fastlane-plugin-weblate`, add it to your project by running:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.paysera.net/application-development-team/lib-fastlane-plugin-weblate.git
-git branch -M master
-git push -uf origin master
+```bash
+fastlane add_plugin weblate
 ```
 
-## Integrate with your tools
+## About weblate
 
-- [ ] [Set up project integrations](https://gitlab.paysera.net/application-development-team/lib-fastlane-plugin-weblate/-/settings/integrations)
+Weblate API integration for automating translation workflows in mobile applications.
 
-## Collaborate with your team
+The plugin provides four main actions:
+- 📋 **weblate** - Fetch projects list with detailed statistics
+- 🌍 **weblate_projects_languages** - Get languages for a specific project
+- 📄 **weblate_files_download** - Download translation files from components
+- 📤 **weblate_file_upload** - Upload translation files to components
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## Setup
 
-## Test and Deploy
+To use this plugin you need:
 
-Use the built-in continuous integration in GitLab.
+1. **Weblate API token** - get it from your Weblate profile settings
+2. **Host URL** - address of your Weblate server
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+It's recommended to use environment variables:
 
-***
+```bash
+export WEBLATE_HOST="https://hosted.weblate.org"
+export WEBLATE_API_TOKEN="your_api_token_here"
+```
 
-# Editing this README
+## Actions
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### 1. weblate - Fetch Projects List
 
-## Suggestions for a good README
+Fetches projects list from Weblate with optional detailed statistics.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+#### Parameters
 
-## Name
-Choose a self-explaining name for your project.
+| Parameter | Required | Description | Environment Variable |
+|-----------|----------|-------------|---------------------|
+| `host` | ✅ | Weblate host URL | `WEBLATE_HOST` |
+| `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
+| `page` | ❌ | Page number (default: 1) | `WEBLATE_PAGE` |
+| `page_size` | ❌ | Items per page (default: 20, max: 200) | `WEBLATE_PAGE_SIZE` |
+| `show_details` | ❌ | Show detailed statistics | `WEBLATE_SHOW_DETAILS` |
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+#### Examples
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```ruby
+# Basic usage
+weblate(
+  host: "https://hosted.weblate.org",
+  api_token: "your_api_token_here"
+)
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+# With detailed statistics
+weblate(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  show_details: true
+)
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+# With pagination
+projects = weblate(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  page_size: 50
+)
+UI.message("Found projects: #{projects.count}")
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### 2. weblate_projects_languages - Get Project Languages
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Fetches the list of languages available for a specific project.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+#### Parameters
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+| Parameter | Required | Description | Environment Variable |
+|-----------|----------|-------------|---------------------|
+| `host` | ✅ | Weblate host URL | `WEBLATE_HOST` |
+| `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
+| `project_slug` | ✅ | Project slug to fetch languages for | `WEBLATE_PROJECT_SLUG` |
+| `show_details` | ❌ | Show detailed information | `WEBLATE_SHOW_DETAILS` |
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+#### Examples
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```ruby
+# Basic usage
+weblate_projects_languages(
+  host: "https://hosted.weblate.org",
+  api_token: "your_api_token_here",
+  project_slug: "my-mobile-app"
+)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+# With detailed information
+weblate_projects_languages(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-mobile-app",
+  show_details: true
+)
 
-## License
-For open source projects, say how it is licensed.
+# Store results for processing
+languages = weblate_projects_languages(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-mobile-app"
+)
+UI.message("Total languages: #{languages.count}")
+```
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### 3. weblate_files_download - Download Translation Files
+
+Downloads translation files from Weblate components. Supports various formats and categorized components.
+
+#### Parameters
+
+| Parameter | Required | Description | Environment Variable |
+|-----------|----------|-------------|---------------------|
+| `host` | ✅ | Weblate host URL | `WEBLATE_HOST` |
+| `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
+| `project_slug` | ✅ | Project slug | `WEBLATE_PROJECT_SLUG` |
+| `component_slug` | ✅ | Component slug (supports categories like `ios/localizable-strings`) | `WEBLATE_COMPONENT_SLUG` |
+| `format` | ❌ | File format (po, json, xliff, etc.) | `WEBLATE_FILE_FORMAT` |
+| `output_path` | ❌ | Path to save the file | `WEBLATE_OUTPUT_PATH` |
+
+#### Examples
+
+```ruby
+# Basic download (returns content)
+file_content = weblate_files_download(
+  host: "https://hosted.weblate.org",
+  api_token: "your_api_token_here",
+  project_slug: "my-project",
+  component_slug: "android-strings"
+)
+
+# Download with specific format and save to file
+weblate_files_download(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-project",
+  component_slug: "ios-localizable",
+  format: "json",
+  output_path: "./translations/strings.json"
+)
+
+# Download from categorized component
+weblate_files_download(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-project",
+  component_slug: "ios/localizable-strings",
+  output_path: "./translations/ios_strings.po"
+)
+```
+
+### 4. weblate_file_upload - Upload Translation Files
+
+Uploads translation files to Weblate components for a specific language. This is useful for updating translations with new strings or content.
+
+#### Parameters
+
+| Parameter | Required | Description | Environment Variable |
+|-----------|----------|-------------|---------------------|
+| `host` | ✅ | Weblate host URL | `WEBLATE_HOST` |
+| `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
+| `project_slug` | ✅ | Project slug | `WEBLATE_PROJECT_SLUG` |
+| `component_slug` | ✅ | Component slug (supports categories like `ios/localizable-strings`) | `WEBLATE_COMPONENT_SLUG` |
+| `src_file_path` | ✅ | Path to the source file to upload | `WEBLATE_SRC_FILE_PATH` |
+| `language` | ❌ | Language code (default: `en_devel`) | `WEBLATE_LANGUAGE` |
+| `method` | ❌ | Upload method: `translate`, `approve`, `suggest`, `fuzzy`, `replace`, `source`, `add` (default: `translate`) | `WEBLATE_UPLOAD_METHOD` |
+| `conflicts` | ❌ | Conflict resolution: `ignore`, `replace-translated`, `replace-approved` (default: `ignore`) | `WEBLATE_CONFLICTS` |
+| `email` | ❌ | Author email (defaults to git user.email) | `WEBLATE_AUTHOR_EMAIL` |
+| `author` | ❌ | Author name (defaults to git user.name) | `WEBLATE_AUTHOR_NAME` |
+| `fuzzy` | ❌ | Fuzzy strings processing: `process`, `approve` | `WEBLATE_FUZZY` |
+
+#### Examples
+
+```ruby
+# Basic upload (en_devel language by default)
+weblate_file_upload(
+  host: "https://hosted.weblate.org",
+  api_token: "your_api_token_here",
+  project_slug: "my-project",
+  component_slug: "android-strings",
+  src_file_path: "./android/values/strings.xml"
+)
+
+# Upload with specific language and method
+weblate_file_upload(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-project",
+  component_slug: "ios-localizable",
+  language: "es",
+  method: "replace",
+  conflicts: "replace-translated",
+  src_file_path: "./ios/es.lproj/Localizable.strings"
+)
+
+# Upload to categorized component with custom author info
+weblate_file_upload(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  project_slug: "my-project",
+  component_slug: "ios/localizable-strings",
+  language: "en_devel",
+  author: "John Doe",
+  email: "john@example.com",
+  fuzzy: "process",
+  src_file_path: "./translations/Base.lproj/Localizable.strings"
+)
+```
+
+## Complete Workflow Example
+
+Here's a complete example showing how to use all four actions together:
+
+```ruby
+# 1. Get all projects
+projects = weblate(
+  host: ENV["WEBLATE_HOST"],
+  api_token: ENV["WEBLATE_API_TOKEN"],
+  show_details: true
+)
+
+# 2. For each project, get languages
+projects.results.each do |project|
+  UI.message("Processing project: #{project.name}")
+  
+  languages = weblate_projects_languages(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: project.slug
+  )
+  
+  UI.message("Available languages: #{languages.map(&:code).join(', ')}")
+  
+  # 3. Download files for specific components
+  weblate_files_download(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: project.slug,
+    component_slug: "mobile-strings",
+    format: "json",
+    output_path: "./translations/#{project.slug}_strings.json"
+  )
+  
+  # 4. Upload updated files back to Weblate
+  weblate_file_upload(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: project.slug,
+    component_slug: "mobile-strings",
+    language: "en_devel",
+    src_file_path: "./source/#{project.slug}_strings.json"
+  )
+end
+```
+
+## Example
+
+Check out the [example `Fastfile`](fastlane/Fastfile) to see how to use this plugin. Try it by cloning the repo, running `fastlane install_plugins` and `bundle exec fastlane test`.
+
+## Run tests for this plugin
+
+To run both the tests, and code style validation, run
+
+```
+rake
+```
+
+To automatically fix many of the styling issues, use
+```
+rubocop -a
+```
+
+## Issues and Feedback
+
+For any other issues and feedback about this plugin, please submit it to this repository.
+
+## Troubleshooting
+
+If you have trouble using plugins, check out the [Plugins Troubleshooting](https://docs.fastlane.tools/plugins/plugins-troubleshooting/) guide.
+
+## Using _fastlane_ Plugins
+
+For more information about how the `fastlane` plugin system works, check out the [Plugins documentation](https://docs.fastlane.tools/plugins/create-plugin/).
+
+## About _fastlane_
+
+_fastlane_ is the easiest way to automate beta deployments and releases for your iOS and Android apps. To learn more, check out [fastlane.tools](https://fastlane.tools).
