@@ -127,7 +127,7 @@ Downloads translation files from Weblate components. Supports various formats an
 | `api_token` | ✅ | API token for authentication | `WEBLATE_API_TOKEN` |
 | `project_slug` | ✅ | Project slug | `WEBLATE_PROJECT_SLUG` |
 | `component_slug` | ✅ | Component slug (supports categories like `ios/localizable-strings`) | `WEBLATE_COMPONENT_SLUG` |
-| `format` | ❌ | File format (po, json, xliff, etc.) | `WEBLATE_FILE_FORMAT` |
+| `format` | ❌ | File format. Defaults to `zip` if not specified. Supports `zip` (original format archive) and `zip:CONVERSION` where CONVERSION is one of: po, xliff, xliff11, tbx, tmx, mo, csv, xlsx, json, json-nested, aresource, strings. For individual files: po, json, xliff, etc. | `WEBLATE_FILE_FORMAT` |
 | `output_path` | ❌ | Path to save the file | `WEBLATE_OUTPUT_PATH` |
 
 #### Examples
@@ -141,25 +141,46 @@ file_content = weblate_files_download(
   component_slug: "android-strings"
 )
 
-# Download with specific format and save to file
+# Download as default ZIP format (original format archive)
 weblate_files_download(
   host: ENV["WEBLATE_HOST"],
   api_token: ENV["WEBLATE_API_TOKEN"],
   project_slug: "my-project",
-  component_slug: "ios-localizable",
-  format: "json",
-  output_path: "./translations/strings.json"
+  component_slug: "mobile-app",
+  output_path: "./translations/original_archive.zip"
 )
 
-# Download from categorized component
+# Download as ZIP archive with XLIFF conversion
 weblate_files_download(
   host: ENV["WEBLATE_HOST"],
   api_token: ENV["WEBLATE_API_TOKEN"],
   project_slug: "my-project",
-  component_slug: "ios/localizable-strings",
-  output_path: "./translations/ios_strings.po"
+  component_slug: "web-app",
+  format: "zip:xliff",
+  output_path: "./translations/xliff_archive.zip"
 )
+
 ```
+
+#### Format Options
+
+The `format` parameter supports several options:
+
+- **Default behavior**: If no format is specified, Weblate returns a ZIP archive with files in their original format
+- **Individual file formats**: `po`, `json`, `xliff`, `mo`, `csv`, `xlsx`, etc. - downloads a single converted file
+- **ZIP with conversion**: `zip:CONVERSION` format creates an archive with all files converted to the specified format:
+  - `zip:po` - ZIP archive with all files converted to gettext PO format
+  - `zip:xliff` - ZIP archive with all files converted to XLIFF format
+  - `zip:xliff11` - ZIP archive with all files converted to XLIFF 1.1 format
+  - `zip:tbx` - ZIP archive with all files converted to TermBase eXchange format
+  - `zip:tmx` - ZIP archive with all files converted to Translation Memory eXchange format
+  - `zip:mo` - ZIP archive with all files converted to gettext MO format
+  - `zip:csv` - ZIP archive with all files converted to CSV format
+  - `zip:xlsx` - ZIP archive with all files converted to Excel format
+  - `zip:json` - ZIP archive with all files converted to JSON format
+  - `zip:json-nested` - ZIP archive with all files converted to nested JSON format
+  - `zip:aresource` - ZIP archive with all files converted to Android String Resource format
+  - `zip:strings` - ZIP archive with all files converted to iOS strings format
 
 ### 4. weblate_file_upload - Upload Translation Files
 
@@ -217,52 +238,6 @@ weblate_file_upload(
   fuzzy: "process",
   src_file_path: "./translations/Base.lproj/Localizable.strings"
 )
-```
-
-## Complete Workflow Example
-
-Here's a complete example showing how to use all four actions together:
-
-```ruby
-# 1. Get all projects
-projects = weblate(
-  host: ENV["WEBLATE_HOST"],
-  api_token: ENV["WEBLATE_API_TOKEN"],
-  show_details: true
-)
-
-# 2. For each project, get languages
-projects.results.each do |project|
-  UI.message("Processing project: #{project.name}")
-  
-  languages = weblate_projects_languages(
-    host: ENV["WEBLATE_HOST"],
-    api_token: ENV["WEBLATE_API_TOKEN"],
-    project_slug: project.slug
-  )
-  
-  UI.message("Available languages: #{languages.map(&:code).join(', ')}")
-  
-  # 3. Download files for specific components
-  weblate_files_download(
-    host: ENV["WEBLATE_HOST"],
-    api_token: ENV["WEBLATE_API_TOKEN"],
-    project_slug: project.slug,
-    component_slug: "mobile-strings",
-    format: "json",
-    output_path: "./translations/#{project.slug}_strings.json"
-  )
-  
-  # 4. Upload updated files back to Weblate
-  weblate_file_upload(
-    host: ENV["WEBLATE_HOST"],
-    api_token: ENV["WEBLATE_API_TOKEN"],
-    project_slug: project.slug,
-    component_slug: "mobile-strings",
-    language: "en_devel",
-    src_file_path: "./source/#{project.slug}_strings.json"
-  )
-end
 ```
 
 ## Example

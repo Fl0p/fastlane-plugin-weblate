@@ -35,3 +35,6 @@ test-results
 
 # ignore gitpmoji directory
 gitpmoji
+
+# example translations
+translations/

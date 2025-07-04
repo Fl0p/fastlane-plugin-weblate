@@ -124,7 +124,12 @@ module Fastlane
           FastlaneCore::ConfigItem.new(
             key: :format,
             env_name: "WEBLATE_FILE_FORMAT",
-            description: "File format to download (e.g., po, json, xliff). If not specified, uses the original format",
+            description: "File format to download. Defaults to 'zip' if not specified. " \
+                        "Supported formats: 'zip' (original format archive) and 'zip:CONVERSION' " \
+                        "where CONVERSION is one of the converters: " \
+                        "po, xliff, xliff11, tbx, tmx, mo, csv, xlsx, json, json-nested, aresource, strings. " \
+                        "For individual translation files, you can also use: po, json, xliff, etc. " \
+                        "Examples: 'zip:po' for gettext PO archive, 'zip:xliff' for XLIFF archive, 'json' for individual JSON file",
             optional: true,
             type: String
           ),
@@ -150,27 +155,23 @@ module Fastlane
             project_slug: "my-project",
             component_slug: "android-strings"
           )',
-          'weblate_files_download(
-            host: "https://hosted.weblate.org", 
+          '# Download as default ZIP format (original format archive)
+          weblate_files_download(
+            host: "https://hosted.weblate.org",
             api_token: "your_api_token_here",
             project_slug: "my-project",
-            component_slug: "ios-localizable",
-            format: "json",
-            output_path: "./translations/strings.json"
+            component_slug: "mobile-app",
+            format: "zip",
+            output_path: "./translations/original_archive.zip"
           )',
-          'file_content = weblate_files_download(
+          '# Download as ZIP archive with XLIFF conversion
+          weblate_files_download(
             host: "https://hosted.weblate.org",
             api_token: "your_api_token_here",
             project_slug: "my-project",
-            component_slug: "web-frontend"
-          )
-          puts "Downloaded #{file_content.length} bytes"',
-          'weblate_files_download(
-            host: "https://hosted.weblate.org",
-            api_token: "your_api_token_here", 
-            project_slug: "my-project",
-            component_slug: "ios/localizable-strings",
-            output_path: "./translations/ios_strings.po"
+            component_slug: "web-app",
+            format: "zip:xliff",
+            output_path: "./translations/xliff_archive.zip"
           )'
         ]
       end
