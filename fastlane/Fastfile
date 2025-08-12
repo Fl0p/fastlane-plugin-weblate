@@ -54,3 +54,14 @@ lane :test_file_upload do
     src_file_path: src_file_path
   )
 end
+
+desc "Demo: Add translations using weblate_add_translations action"
+lane :test_add_translations do
+  weblate_add_translations(
+    host: ENV["WEBLATE_HOST"],
+    api_token: ENV["WEBLATE_API_TOKEN"],
+    project_slug: ENV["WEBLATE_PROJECT_SLUG"],
+    component_slug: "ios/localizable-strings",
+    src_file_path: src_file_path
+  )
+end
